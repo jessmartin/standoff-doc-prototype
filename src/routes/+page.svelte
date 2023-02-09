@@ -9,20 +9,27 @@ ET`;
 </script>
 
 <!-- three column layout with vanilla css styles -->
-<div class="container">
-	<div style="border:1px solid black; padding:5px 10px; margin-bottom: 10px;">
-		<h1>Original Doc</h1>
-		<span>Type: PDF</span>
-		<pre>
-      <!-- the raw data for a simple PDF document -->
-{pdfAsText}
-    </pre>
+<div class="border-b border-black p-5 pl-10">
+	<h1 class="text-xl font-medium relative">
+		<span class="absolute -inset-x-6 rotate-90 origin-center w-5 h-7"><a href="#">&#9658;</a></span>
+		Document
+	</h1>
+	<span>Type: PDF</span>
+	<div class="border border-black p-5 bg-[#F4F7E7]">
+		<pre>{pdfAsText}</pre>
 	</div>
-	<div style="border:1px solid black; padding:5px 10px; margin-bottom: 10px;">
-		<h1>Document Model</h1>
-		<h2>Raw Content Stream</h2>
+</div>
+<div class="border-b border-black p-5 pl-10">
+	<h1 class="text-xl font-medium relative">
+		<span class="absolute -inset-x-6 rotate-90 origin-center w-5 h-7">&#9658;</span>
+		Document Model
+	</h1>
+	<h2>Raw Content Stream</h2>
+	<div class="border border-black p-5 bg-[#F4F7E7]">
 		<pre>{rawContentStream}</pre>
-		<h2>Annotations</h2>
+	</div>
+	<h2>Annotations</h2>
+	<div class="border border-black p-5 bg-[#F4F7E7]">
 		<pre>
         "type": "Annotation",
         "subtype": "Text",
@@ -30,16 +37,26 @@ ET`;
         "contents": "Hello World"
     </pre>
 	</div>
-	<div style="border:1px solid black; padding:5px 10px; margin-bottom: 10px;">
-		<h1>Raw HTML</h1>
+</div>
+<div class="border-b border-black p-5 pl-10">
+	<h1 class="text-xl font-medium relative">
+		<span class="absolute -inset-x-6 rotate-90 origin-center w-5 h-7">&#9658;</span>
+		Raw HTML
+	</h1>
+	<div class="border border-black p-5 bg-[#F4F7E7] overflow-scroll">
 		<pre>
 			<!-- html span tag as plain text -->
 
 			&lt;span style="font-family: Helvetica; font-size: 12px;"&gt;Hello World&lt;/span&gt;
     </pre>
 	</div>
-	<div style="border:1px solid black; padding:5px 10px; margin-bottom: 10px;">
-		<h1>Rendered</h1>
-		<span style="font-family: Helvetica; font-size: 12px;">Hello World</span>
+</div>
+<div class="border-b border-black p-5 pl-10">
+	<h1 class="text-xl font-medium relative">
+		<span class="absolute -inset-x-6 rotate-90 origin-center w-5 h-7">&#9658;</span>
+		Rendered
+	</h1>
+	<div class="border border-black p-5 bg-[#F4F7E7]">
+		<span>Hello World</span>
 	</div>
 </div>
