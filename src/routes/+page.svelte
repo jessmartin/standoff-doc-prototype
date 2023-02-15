@@ -1,23 +1,28 @@
 <script lang="ts">
-  import type { PageData } from './$types'
+  import { enhance } from '$app/forms'
+  import type { PageData, ActionData } from './$types'
 
-  export let data: PageData
-
-  function getHtml() {
-    return data.html
-  }
+  export let form: ActionData
 </script>
+
+<pre>
+  {JSON.stringify(form, null, 2)}
+</pre>
 
 <article class="prose dark:prose-invert" />
 
 <div class="border-b border-black p-5 pl-10">
-  <!-- input for a website URL -->
-  <input
-    type="text"
-    class="w-1/4 border border-black p-2"
-    placeholder="Enter URL"
-  />
-  <button class="bg-[#F4F7E7] border border-black p-2">Grab URL</button>
+  <form method="POST" action="?/getHTMLfromUrl">
+    <input
+      type="text"
+      name="url"
+      placeholder="Enter URL"
+      class="w-1/4 border border-black p-2"
+    />
+    <button type="submit" class="bg-[#F4F7E7] border border-black p-2"
+      >Import</button
+    >
+  </form>
 </div>
 <div class="border-b border-black p-5 pl-10">
   <h1 class="text-xl font-medium relative">
@@ -28,7 +33,9 @@
   </h1>
   <div class="border border-black p-5 bg-[#F4F7E7] overflow-scroll">
     <pre>
-			{getHtml()}
-    </pre>
+      {#if form.html}
+        {form.html}
+      {/if}
+      </pre>
   </div>
 </div>
