@@ -1,7 +1,11 @@
-<script lang="ts">
-	import '../app.css';
+<script>
+  import '../app.css'
 </script>
 
-<div class="">
-	<slot />
+<nav class="p-2">
+  <a class="hover:underline" href="/">Home</a>
+</nav>
+
+<div>
+  <slot />
 </div>
