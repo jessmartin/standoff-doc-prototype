@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { generateJDOM } from '../lib/util'
+import { generateJDOM, readingOrderContentFromJDOM } from '../lib/util'
+
+const jdom = generateJDOM('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
 
 describe('generateJDOM', () => {
-  const jdom = generateJDOM('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
-
   it('should return a JDOM object', () => {
     expect(jdom).toHaveProperty('rawContent')
     expect(jdom).toHaveProperty('marks')
@@ -45,5 +45,17 @@ describe('generateJDOM', () => {
       end: 28,
       index: expect.any(Number)
     })
+  })
+})
+
+describe('readingOrderContentFromJDOM', () => {
+  it('should return a string', () => {
+    const readingOrderContent = readingOrderContentFromJDOM(jdom)
+    expect(typeof readingOrderContent).toBe('string')
+  })
+
+  it('should return only the content in reading order', () => {
+    const readingOrderContent = readingOrderContentFromJDOM(jdom)
+    expect(readingOrderContent).toEqual('FoxThe fox jumped.')
   })
 })

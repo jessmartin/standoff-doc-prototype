@@ -1,17 +1,17 @@
 <script lang="ts">
   import type { ActionData } from './$types'
 
-  import { generateJDOM } from '$lib/util'
+  import { generateJDOM, readingOrderContentFromJDOM } from '$lib/util'
 
   export let form: ActionData
 
-  let content: string = ''
+  let readableContent: string = ''
   let marks: object[] = []
   let readingOrder: object[] = []
 
   if (form && form.html) {
     const jdom = generateJDOM(form.html)
-    content = jdom.rawContent
+    readableContent = readingOrderContentFromJDOM(jdom)
     marks = jdom.marks
     readingOrder = jdom.readingOrder
   }
@@ -46,7 +46,7 @@
   </h1>
   <h1 class="text-xl font-medium relative mb-5">Raw Content</h1>
   <div class="border border-black p-5 bg-[#F4F7E7] overflow-scroll max-h-52">
-    <pre>{content}</pre>
+    <pre>{readableContent}</pre>
   </div>
 </div>
 <div class="flex">

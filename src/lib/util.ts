@@ -4,10 +4,16 @@ import type { Element } from 'parse5/dist/tree-adapters/default'
 
 let readingOrderIndex = 0
 
+type JDOM = {
+  rawContent: string
+  marks: object[]
+  readingOrder: object[]
+}
+
 export const generateJDOM = (html: string) => {
   readingOrderIndex = 0
 
-  const jdom = {
+  const jdom: JDOM = {
     rawContent: html,
     marks: [],
     readingOrder: []
@@ -25,7 +31,7 @@ const nodesToMark: { [index: string]: string } = {
   b: 'bold'
 }
 
-const nodesNotToRead: [string] = ['nav']
+const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer']
 
 const walk = (nodes: Node[], marks: object[], readingOrder: object[] = [], readable = true) => {
   if (!nodes) return
@@ -61,4 +67,14 @@ const walk = (nodes: Node[], marks: object[], readingOrder: object[] = [], reada
 
 const nodeIsElement = (node: Node): node is Element => {
   return node.nodeName !== undefined && node.nodeName !== '#text' && node.nodeName !== ''
+}
+
+export const readingOrderContentFromJDOM = (jdom: JDOM) => {
+  let readingOrderContent = ''
+  for (const readingOrderElem of jdom.readingOrder) {
+    const { start, end } = readingOrderElem as { start: number; end: number }
+    const content = jdom.rawContent.slice(start, end)
+    readingOrderContent += content
+  }
+  return readingOrderContent
 }
