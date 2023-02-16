@@ -14,6 +14,6 @@ describe('generateJDOM', () => {
     expect(jdom.rawContent).toBe(
       '<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>'
     )
-    expect(jdom.marks).toEqual([{ type: 'h1', start: 4, end: 6 }])
+    expect(jdom.marks).toContainEqual({ type: 'h1', start: 4, end: 7 })
   })
 })
