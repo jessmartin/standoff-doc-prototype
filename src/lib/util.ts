@@ -2,7 +2,11 @@ import * as parse5 from 'parse5'
 import type { Node } from 'parse5/dist/tree-adapters/default'
 import type { Element } from 'parse5/dist/tree-adapters/default'
 
+let readingOrderIndex = 0
+
 export const generateJDOM = (html: string) => {
+  readingOrderIndex = 0
+
   const jdom = {
     rawContent: html,
     marks: [],
@@ -22,7 +26,6 @@ const nodesToMark: { [index: string]: string } = {
 }
 
 const nodesNotToRead: [string] = ['nav']
-let readingOrderIndex = 0
 
 const walk = (nodes: Node[], marks: object[], readingOrder: object[] = [], readable = true) => {
   if (!nodes) return
