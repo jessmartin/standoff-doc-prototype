@@ -26,7 +26,9 @@ const walk = (nodes: Node[], marks: Object[]) => {
       node.nodeName !== ''
     ) {
       const element: Element = node as Element
-      walk(element.childNodes, marks)
+      // Create the mark based on the  element's sourceCodeLocation start and end
+
+      walk(element.childNodes, marks)AbortController
     } else if (node.nodeName === '#text') {
       if (node.parentNode && node.parentNode.sourceCodeLocation) {
         const mark = {
