@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { generateJDOM } from '../lib/util'
 
 describe('generateJDOM', () => {
-  it('should return a JDOM object', () => {
-    const jdom = generateJDOM(
-      '<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>'
-    )
+  const jdom = generateJDOM(
+    '<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>'
+  )
 
+  it('should return a JDOM object', () => {
     expect(jdom).toHaveProperty('rawContent')
     expect(jdom).toHaveProperty('marks')
     expect(jdom).toHaveProperty('readingOrder')
@@ -14,6 +14,30 @@ describe('generateJDOM', () => {
     expect(jdom.rawContent).toBe(
       '<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>'
     )
-    expect(jdom.marks).toContainEqual({ type: 'h1', start: 4, end: 7 })
+  })
+
+  it('should correctly parse <h1>s', () => {
+    expect(jdom.marks).toContainEqual({ type: 'heading1', start: 4, end: 7 })
+  })
+
+  it('should not create marks for elements inside <nav>', () => {
+    expect(jdom.marks).not.toContainEqual({
+      type: 'heading1',
+      start: 21,
+      end: 28
+    })
+  })
+
+  it('should correctly parse <p>s', () => {
+    expect(jdom.marks).toContainEqual({ type: 'paragraph', start: 42, end: 64 })
+  })
+
+  it('should correctly parse <b>s', () => {
+    expect(jdom.marks).toContainEqual({ type: 'bold', start: 53, end: 59 })
+  })
+
+  it.todo('should correctly parse readingOrder', () => {
+    expect(jdom.readingOrder).toContainEqual({ start: 4, end: 7, index: 0 })
+    // expect(jdom.readingOrder).not({ start: 4, end: 7, index: 0 })
   })
 })

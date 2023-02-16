@@ -16,28 +16,35 @@ export const generateJDOM = (html: string) => {
   return jdom
 }
 
-const walk = (nodes: Node[], marks: Object[]) => {
+const nodesToMark: { [index: string]: string } = {
+  h1: 'heading1',
+  p: 'paragraph',
+  b: 'bold'
+}
+
+// could store `readable` as a flag and toggle it on/off
+// based on the type of element
+const walk = (nodes: Node[], marks: object[], readable = true) => {
   if (!nodes) return
-  for (let node of nodes) {
-    console.log(node)
+  for (const node of nodes) {
     if (
       node.nodeName !== undefined &&
       node.nodeName !== '#text' &&
       node.nodeName !== ''
     ) {
       const element: Element = node as Element
-      // Create the mark based on the  element's sourceCodeLocation start and end
-
-      walk(element.childNodes, marks)AbortController
-    } else if (node.nodeName === '#text') {
-      if (node.parentNode && node.parentNode.sourceCodeLocation) {
+      if (Object.keys(nodesToMark).includes(element.nodeName)) {
         const mark = {
-          type: node.parentNode.nodeName,
-          start: node.parentNode.sourceCodeLocation.startOffset,
-          end: node.parentNode.sourceCodeLocation.endOffset
+          type: nodesToMark[element.nodeName],
+          start: element.sourceCodeLocation?.startTag?.endOffset,
+          end: element.sourceCodeLocation?.endTag?.startOffset
         }
         marks.push(mark)
       }
+
+      walk(element.childNodes, marks, readable)
+    } else if (node.nodeName === '#text') {
+      // Create the reading order based on the text node's sourceCodeLocation start and end
     }
   }
 }
