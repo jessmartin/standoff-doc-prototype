@@ -36,8 +36,16 @@ describe('generateJDOM', () => {
     expect(jdom.marks).toContainEqual({ type: 'bold', start: 53, end: 59 })
   })
 
-  it.todo('should correctly parse readingOrder', () => {
+  it('should correctly parse readingOrder', () => {
     expect(jdom.readingOrder).toContainEqual({ start: 4, end: 7, index: 0 })
     // expect(jdom.readingOrder).not({ start: 4, end: 7, index: 0 })
+  })
+
+  it('should not parse readingOrder for elements inside <nav>', () => {
+    expect(jdom.readingOrder).not.toContainEqual({
+      start: 21,
+      end: 28,
+      index: expect.any(Number)
+    })
   })
 })

@@ -10,8 +10,7 @@ export const generateJDOM = (html: string) => {
   }
 
   const tree = parse5.parse(html, { sourceCodeLocationInfo: true })
-  walk(tree.childNodes, jdom.marks)
-  console.log(jdom.marks)
+  walk(tree.childNodes, jdom.marks, jdom.readingOrder)
 
   return jdom
 }
@@ -23,8 +22,14 @@ const nodesToMark: { [index: string]: string } = {
 }
 
 const nodesNotToRead: [string] = ['nav']
+let readingOrderIndex = 0
 
-const walk = (nodes: Node[], marks: object[], readable = true) => {
+const walk = (
+  nodes: Node[],
+  marks: object[],
+  readingOrder: object[] = [],
+  readable = true
+) => {
   if (!nodes) return
   for (const node of nodes) {
     if (nodeIsElement(node)) {
@@ -39,12 +44,19 @@ const walk = (nodes: Node[], marks: object[], readable = true) => {
       }
 
       if (nodesNotToRead.includes(element.nodeName)) {
-        walk(element.childNodes, marks, false)
+        walk(element.childNodes, marks, readingOrder, false)
       } else {
-        walk(element.childNodes, marks, readable)
+        walk(element.childNodes, marks, readingOrder, readable)
       }
     } else if (node.nodeName === '#text') {
-      // Create the reading order based on the text node's sourceCodeLocation start and end
+      if (readable) {
+        const readingOrderElem = {
+          start: node.sourceCodeLocation?.startOffset,
+          end: node.sourceCodeLocation?.endOffset,
+          index: readingOrderIndex++
+        }
+        readingOrder.push(readingOrderElem)
+      }
     }
   }
 }
