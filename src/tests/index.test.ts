@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { generateJDOM } from '../lib/util'
 
 describe('generateJDOM', () => {
-  const jdom = generateJDOM(
-    '<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>'
-  )
+  const jdom = generateJDOM('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
 
   it('should return a JDOM object', () => {
     expect(jdom).toHaveProperty('rawContent')

@@ -24,12 +24,7 @@ const nodesToMark: { [index: string]: string } = {
 const nodesNotToRead: [string] = ['nav']
 let readingOrderIndex = 0
 
-const walk = (
-  nodes: Node[],
-  marks: object[],
-  readingOrder: object[] = [],
-  readable = true
-) => {
+const walk = (nodes: Node[], marks: object[], readingOrder: object[] = [], readable = true) => {
   if (!nodes) return
   for (const node of nodes) {
     if (nodeIsElement(node)) {
@@ -62,9 +57,5 @@ const walk = (
 }
 
 const nodeIsElement = (node: Node): node is Element => {
-  return (
-    node.nodeName !== undefined &&
-    node.nodeName !== '#text' &&
-    node.nodeName !== ''
-  )
+  return node.nodeName !== undefined && node.nodeName !== '#text' && node.nodeName !== ''
 }
