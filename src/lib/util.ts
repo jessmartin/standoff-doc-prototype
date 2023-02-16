@@ -22,18 +22,14 @@ const nodesToMark: { [index: string]: string } = {
   b: 'bold'
 }
 
-// could store `readable` as a flag and toggle it on/off
-// based on the type of element
+const nodesNotToRead: [string] = ['nav']
+
 const walk = (nodes: Node[], marks: object[], readable = true) => {
   if (!nodes) return
   for (const node of nodes) {
-    if (
-      node.nodeName !== undefined &&
-      node.nodeName !== '#text' &&
-      node.nodeName !== ''
-    ) {
+    if (nodeIsElement(node)) {
       const element: Element = node as Element
-      if (Object.keys(nodesToMark).includes(element.nodeName)) {
+      if (readable && Object.keys(nodesToMark).includes(element.nodeName)) {
         const mark = {
           type: nodesToMark[element.nodeName],
           start: element.sourceCodeLocation?.startTag?.endOffset,
@@ -42,9 +38,21 @@ const walk = (nodes: Node[], marks: object[], readable = true) => {
         marks.push(mark)
       }
 
-      walk(element.childNodes, marks, readable)
+      if (nodesNotToRead.includes(element.nodeName)) {
+        walk(element.childNodes, marks, false)
+      } else {
+        walk(element.childNodes, marks, readable)
+      }
     } else if (node.nodeName === '#text') {
       // Create the reading order based on the text node's sourceCodeLocation start and end
     }
   }
+}
+
+const nodeIsElement = (node: Node): node is Element => {
+  return (
+    node.nodeName !== undefined &&
+    node.nodeName !== '#text' &&
+    node.nodeName !== ''
+  )
 }
