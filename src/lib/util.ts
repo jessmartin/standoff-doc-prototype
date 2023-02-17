@@ -1,6 +1,5 @@
 import * as parse5 from 'parse5'
-import type { Node } from 'parse5/dist/tree-adapters/default'
-import type { Element } from 'parse5/dist/tree-adapters/default'
+import type { Node, Element } from 'parse5/dist/tree-adapters/default'
 
 let readingOrderIndex = 0
 
@@ -13,13 +12,14 @@ type JDOM = {
 export const generateJDOM = (html: string) => {
   readingOrderIndex = 0
 
+  const tree = parse5.parse(html, { sourceCodeLocationInfo: true })
+
   const jdom: JDOM = {
     rawContent: html,
     marks: [],
     readingOrder: []
   }
 
-  const tree = parse5.parse(html, { sourceCodeLocationInfo: true })
   walk(tree.childNodes, jdom.marks, jdom.readingOrder)
 
   return jdom

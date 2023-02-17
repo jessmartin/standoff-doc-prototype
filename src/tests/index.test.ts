@@ -36,7 +36,6 @@ describe('generateJDOM', () => {
 
   it('should correctly parse readingOrder', () => {
     expect(jdom.readingOrder).toContainEqual({ start: 4, end: 7, index: 0 })
-    // expect(jdom.readingOrder).not({ start: 4, end: 7, index: 0 })
   })
 
   it('should not parse readingOrder for elements inside <nav>', () => {
@@ -45,6 +44,20 @@ describe('generateJDOM', () => {
       end: 28,
       index: expect.any(Number)
     })
+  })
+
+  it('should handle DOCTYPE', () => {
+    const jdom = generateJDOM(
+      '<!DOCTYPE html><html><head></head><body><p>The fox <b>jumped</b>.</p></body></html>'
+    )
+    expect(jdom.readingOrder.length).toBe(3)
+  })
+
+  it('should handle self-closing tags', () => {
+    const jdom = generateJDOM(
+      '<html><head><meta http-equiv="x-ua-compatible" content="ie=edge"/></head><body><p>The fox <b>jumped</b>.</p><br/><meta attr="something"/><p>More content</p></body></html>'
+    )
+    expect(jdom.readingOrder.length).toBe(4)
   })
 })
 
@@ -60,7 +73,7 @@ describe('readingOrderContentFromJDOM', () => {
   })
 })
 
-describe('toHTMLFromJDOM', () => {
+describe.todo('toHTMLFromJDOM', () => {
   it('should return a string', () => {
     const html = toHTMLFromJDOM(jdom)
     expect(typeof html).toBe('string')

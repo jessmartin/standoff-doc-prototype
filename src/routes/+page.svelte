@@ -10,7 +10,6 @@
   let readingOrder: object[] = []
 
   if (form && form.html) {
-    console.log(form)
     const jdom = generateJDOM(form.html)
     readableContent = readingOrderContentFromJDOM(jdom)
     marks = jdom.marks
@@ -22,8 +21,6 @@
   <p>Form data:</p>
   <pre>{JSON.stringify(form, null, 2)}</pre>
 {/if} -->
-
-<article class="prose dark:prose-invert" />
 
 <div class="border-b border-black dark:border-white p-5 pl-10">
   <form method="POST">
