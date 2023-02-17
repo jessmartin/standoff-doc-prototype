@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { generateJDOM, readingOrderContentFromJDOM } from '../lib/util'
+import { generateJDOM, readingOrderContentFromJDOM, toHTMLFromJDOM } from '../lib/util'
 
 const jdom = generateJDOM('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
 
@@ -57,5 +57,17 @@ describe('readingOrderContentFromJDOM', () => {
   it('should return only the content in reading order', () => {
     const readingOrderContent = readingOrderContentFromJDOM(jdom)
     expect(readingOrderContent).toEqual('FoxThe fox jumped.')
+  })
+})
+
+describe('toHTMLFromJDOM', () => {
+  it('should return a string', () => {
+    const html = toHTMLFromJDOM(jdom)
+    expect(typeof html).toBe('string')
+  })
+
+  it('should omit non-reader content such as <nav> and its children', () => {
+    const html = toHTMLFromJDOM(jdom)
+    expect(html).not.toContain('<h1>Content</h1>')
   })
 })

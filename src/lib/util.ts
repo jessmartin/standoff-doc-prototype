@@ -78,3 +78,13 @@ export const readingOrderContentFromJDOM = (jdom: JDOM) => {
   }
   return readingOrderContent
 }
+
+export const toHTMLFromJDOM = (jdom: JDOM) => {
+  // Add a <html><head></head><body> tags at the beginning
+  // Iterate over each reading order element
+  // -- Iterate over each character in the reading order element
+  // ---- Find any marks that match the index of the character
+  // ------ If index matches a start mark, add the start tag
+  // ------ If index matches an end mark, add the end tag
+  // Close with </body></html> tags
+}
