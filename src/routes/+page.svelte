@@ -10,6 +10,7 @@
   let readingOrder: object[] = []
 
   if (form && form.html) {
+    console.log(form)
     const jdom = generateJDOM(form.html)
     readableContent = readingOrderContentFromJDOM(jdom)
     marks = jdom.marks

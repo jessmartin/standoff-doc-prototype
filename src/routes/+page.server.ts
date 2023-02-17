@@ -13,6 +13,6 @@ export const actions: Actions = {
     const html = await fetch(url).then((res) => res.text())
     // TODO: Handle errors on fetch and show in UI
 
-    return { html: html }
+    return { url: url, html: html }
   }
 }
