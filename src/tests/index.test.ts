@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { generateJDOM, readingOrderContentFromJDOM, toHTMLFromJDOM } from '../lib/util'
+import { htmlToJdom, jdomToText, jdomToHtml } from '../lib/util'
 
-const jdom = generateJDOM('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
+const jdom = htmlToJdom('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
 
-describe('generateJDOM', () => {
+describe('htmlToJdom', () => {
   it('should return a JDOM object', () => {
     expect(jdom).toHaveProperty('rawContent')
     expect(jdom).toHaveProperty('marks')
@@ -47,40 +47,40 @@ describe('generateJDOM', () => {
   })
 
   it('should handle DOCTYPE', () => {
-    const jdom = generateJDOM(
+    const jdom = htmlToJdom(
       '<!DOCTYPE html><html><head></head><body><p>The fox <b>jumped</b>.</p></body></html>'
     )
     expect(jdom.readingOrder.length).toBe(3)
   })
 
   it('should handle self-closing tags', () => {
-    const jdom = generateJDOM(
+    const jdom = htmlToJdom(
       '<html><head><meta http-equiv="x-ua-compatible" content="ie=edge"/></head><body><p>The fox <b>jumped</b>.</p><br/><meta attr="something"/><p>More content</p></body></html>'
     )
     expect(jdom.readingOrder.length).toBe(4)
   })
 })
 
-describe('readingOrderContentFromJDOM', () => {
+describe('jdomToText', () => {
   it('should return a string', () => {
-    const readingOrderContent = readingOrderContentFromJDOM(jdom)
+    const readingOrderContent = jdomToText(jdom)
     expect(typeof readingOrderContent).toBe('string')
   })
 
   it('should return only the content in reading order', () => {
-    const readingOrderContent = readingOrderContentFromJDOM(jdom)
+    const readingOrderContent = jdomToText(jdom)
     expect(readingOrderContent).toEqual('FoxThe fox jumped.')
   })
 })
 
 describe.todo('toHTMLFromJDOM', () => {
   it('should return a string', () => {
-    const html = toHTMLFromJDOM(jdom)
+    const html = jdomToHtml(jdom)
     expect(typeof html).toBe('string')
   })
 
   it('should omit non-reader content such as <nav> and its children', () => {
-    const html = toHTMLFromJDOM(jdom)
+    const html = jdomToHtml(jdom)
     expect(html).not.toContain('<h1>Content</h1>')
   })
 })

@@ -9,7 +9,7 @@ type JDOM = {
   readingOrder: object[]
 }
 
-export const generateJDOM = (html: string) => {
+export const htmlToJdom = (html: string) => {
   readingOrderIndex = 0
 
   const tree = parse5.parse(html, { sourceCodeLocationInfo: true })
@@ -27,8 +27,11 @@ export const generateJDOM = (html: string) => {
 
 const nodesToMark: { [index: string]: string } = {
   h1: 'heading1',
+  h2: 'heading2',
+  h3: 'heading3',
   p: 'paragraph',
-  b: 'bold'
+  b: 'bold',
+  strong: 'bold'
 }
 
 const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer']
@@ -69,7 +72,7 @@ const nodeIsElement = (node: Node): node is Element => {
   return node.nodeName !== undefined && node.nodeName !== '#text' && node.nodeName !== ''
 }
 
-export const readingOrderContentFromJDOM = (jdom: JDOM) => {
+export const jdomToText = (jdom: JDOM) => {
   let readingOrderContent = ''
   for (const readingOrderElem of jdom.readingOrder) {
     const { start, end } = readingOrderElem as { start: number; end: number }
@@ -79,7 +82,7 @@ export const readingOrderContentFromJDOM = (jdom: JDOM) => {
   return readingOrderContent
 }
 
-export const toHTMLFromJDOM = (jdom: JDOM) => {
+export const jdomToHtml = (jdom: JDOM) => {
   // Add a <html><head></head><body> tags at the beginning
   // Iterate over each reading order element
   // -- Iterate over each character in the reading order element

@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { ActionData } from './$types'
 
-  import { generateJDOM, readingOrderContentFromJDOM } from '$lib/util'
   import { slide } from 'svelte/transition'
+  import { htmlToJdom, jdomToText } from '$lib/util'
 
   export let form: ActionData
 
@@ -12,8 +12,8 @@
   let url: string = ''
 
   if (form && form.html) {
-    const jdom = generateJDOM(form.html)
-    readableContent = readingOrderContentFromJDOM(jdom)
+    const jdom = htmlToJdom(form.html)
+    readableContent = jdomToText(jdom)
     marks = jdom.marks
     readingOrder = jdom.readingOrder
     url = form.url
