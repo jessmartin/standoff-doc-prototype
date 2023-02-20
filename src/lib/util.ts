@@ -90,4 +90,5 @@ export const jdomToHtml = (jdom: JDOM) => {
   // ------ If index matches a start mark, add the start tag
   // ------ If index matches an end mark, add the end tag
   // Close with </body></html> tags
+  return '<h1>Some content</h1><p>something</p>'
 }

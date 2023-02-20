@@ -2,18 +2,20 @@
   import type { ActionData } from './$types'
 
   import { slide } from 'svelte/transition'
-  import { htmlToJdom, jdomToText } from '$lib/util'
+  import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
 
   export let form: ActionData
 
-  let readableContent: string = ''
+  let readableContent = ''
   let marks: object[] = []
   let readingOrder: object[] = []
-  let url: string = ''
+  let url = ''
+  let renderedDoc = ''
 
   if (form && form.html) {
     const jdom = htmlToJdom(form.html)
     readableContent = jdomToText(jdom)
+    renderedDoc = jdomToHtml(jdom)
     marks = jdom.marks
     readingOrder = jdom.readingOrder
     url = form.url
@@ -22,6 +24,7 @@
   // handle hiding and showing different sections
   let showRawTextContent = true
   let showJDOM = true
+  let showRenderedDoc = true
 </script>
 
 <!-- {#if form}
@@ -88,7 +91,7 @@
   {/if}
 </div>
 {#if showJDOM}
-  <div class="flex">
+  <div class="flex" transition:slide>
     <div class="border-b border-black dark:border-white p-5 pl-10 w-1/2">
       <h1 class="text-xl font-medium relative mb-5">Marks</h1>
       <div
@@ -107,3 +110,25 @@
     </div>
   </div>
 {/if}
+<div class="border-b border-black dark:border-white p-5 pl-10">
+  <h1 class="text-xl font-medium relative {showRenderedDoc ? 'mb-5' : 'mb-0'}" transition:slide>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <span
+      on:click={() => (showRenderedDoc = !showRenderedDoc)}
+      class="absolute -inset-x-5 transition {showRenderedDoc
+        ? 'rotate-90'
+        : 'rotate-0'} origin-center w-3 h-5 text-sm mt-1">&#9658;</span
+    >
+    Rendered Doc
+  </h1>
+  {#if showRenderedDoc}
+    <div
+      class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900"
+      transition:slide
+    >
+      <article class="prose dark:prose-dark">
+        {@html renderedDoc}
+      </article>
+    </div>
+  {/if}
+</div>
