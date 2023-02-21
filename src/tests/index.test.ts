@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { htmlToJdom, jdomToText, jdomToHtml } from '../lib/util'
-import { articleHtml } from './articleFixture.test'
+import { htmlToJdom, jdomToText, jdomToHtml, type UserMark } from '../lib/util'
+import { articleHtml } from './articleFixture'
 
 const jdom = htmlToJdom('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
 
@@ -94,11 +94,21 @@ describe('toHTMLFromJDOM', () => {
 
   it('should support <b> tags', () => {
     const html = jdomToHtml(jdom)
-    expect(html).toContain('The fox <b>jumped</b>.')
+    expect(html).toContain('The fox <b data-mark-start="53" data-mark-end="59">jumped</b>.')
   })
 
   it('should omit non-reader content such as <nav> and its children', () => {
     const html = jdomToHtml(jdom)
     expect(html).not.toContain('Content')
   })
+
+  it('should render <span class="highlight"> tags for user marks', () => {
+    const jdom = htmlToJdom('<p>The fox <b>jumped</b>.</p>')
+    const userMarks: UserMark[] = []
+    userMarks.push({ markType: 'highlight', start: 3, end: 9 })
+    const html = jdomToHtml(jdom, userMarks)
+    expect(html).toContain('<span class="user-highlight">The fox</span>')
+  })
+
+  it.todo('should render multiple spans across block elements')
 })

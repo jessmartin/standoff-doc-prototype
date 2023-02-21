@@ -3,10 +3,22 @@ import type { Node, Element } from 'parse5/dist/tree-adapters/default'
 
 let readingOrderIndex = 0
 
-type JDOM = {
+export type Mark = {
+  type: string
+  start: number
+  end: number
+}
+
+export type JDOM = {
   rawContent: string
-  marks: object[]
+  marks: Mark[]
   readingOrder: object[]
+}
+
+export type UserMark = {
+  start: number
+  end: number
+  markType: string
 }
 
 export const htmlToJdom = (html: string) => {
@@ -34,7 +46,9 @@ const nodesToMark: { [index: string]: string } = {
   h6: 'heading6',
   p: 'paragraph',
   b: 'bold',
-  strong: 'bold'
+  strong: 'bold',
+  i: 'italic',
+  em: 'italic'
 }
 
 const markTypesToTag: { [index: string]: string } = {
@@ -44,8 +58,19 @@ const markTypesToTag: { [index: string]: string } = {
   heading4: 'h4',
   heading6: 'h6',
   paragraph: 'p',
-  bold: 'b'
+  bold: 'b',
+  italic: 'i'
 }
+
+const blockMarks = [
+  'heading1',
+  'heading2',
+  'heading3',
+  'heading4',
+  'heading5',
+  'heading6',
+  'paragraph'
+]
 
 const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer']
 
@@ -96,7 +121,7 @@ export const jdomToText = (jdom: JDOM) => {
 }
 
 // TODO: Build a HAST and generate the HTML string
-export const jdomToHtml = (jdom: JDOM) => {
+export const jdomToHtml = (jdom: JDOM, userMarks: UserMark[] = []) => {
   // TODO: Add a <html><head></head><body> tags at the beginning
   let html = ''
   for (const readingOrderElem of jdom.readingOrder) {
@@ -106,29 +131,63 @@ export const jdomToHtml = (jdom: JDOM) => {
     // Iterate over each character in the content string
     for (let i = 0; i < content.length; i++) {
       const char = content[i]
-      // If index matches a start mark, add the start tag
-      jdom.marks.map((mark) => {
-        if (mark.start === start + i) {
-          html += `<${markTypesToTag[mark.type]} data-mark-start="${mark.start}" data-mark-end="${
-            mark.end
-          }">`
-          html += char
-        }
-      })
-      // If index matches an end mark, add the end tag
-      jdom.marks.map((mark) => {
-        if (mark.end === start + i + 1) {
-          html += char
-          html += `</${markTypesToTag[mark.type]}>`
-        }
-      })
-      // If index matches no start or end, just add the character
-      const matchTag = jdom.marks.some((mark) => {
-        if (mark.start === start + i || mark.end === start + i + 1) {
+      const charIndex = start + i
+
+      const activeUserMarks = userMarks.filter((mark) => {
+        if (mark.start <= charIndex && mark.end >= charIndex) {
           return true
         }
       })
-      if (!matchTag) html += char
+
+      // If index matches a start mark, add the start tag
+      jdom.marks.map((mark) => {
+        if (mark.start === charIndex) {
+          html += `<${markTypesToTag[mark.type]} data-mark-start="${mark.start}" data-mark-end="${
+            mark.end
+          }">`
+          if (activeUserMarks.length > 0) {
+            html += `<span class="user-highlight">`
+          }
+          html += char
+        }
+      })
+
+      // If index matches an end mark, add the end tag
+      jdom.marks.map((mark) => {
+        if (mark.end === charIndex + 1) {
+          html += char
+          if (activeUserMarks.length > 0) {
+            html += `</span>`
+          }
+          html += `</${markTypesToTag[mark.type]}>`
+        }
+      })
+
+      // If index matches no start or end, just add the character
+      const matchTag = jdom.marks.some((mark) => {
+        if (mark.start === charIndex || mark.end === charIndex + 1) {
+          return true
+        }
+      })
+      if (!matchTag) {
+        if (
+          activeUserMarks.length > 0 &&
+          activeUserMarks.some((mark) => {
+            return mark.start === charIndex
+          })
+        ) {
+          html += `<span class="user-highlight">`
+        }
+        html += char
+        if (
+          activeUserMarks.length > 0 &&
+          activeUserMarks.some((mark) => {
+            return mark.end === charIndex
+          })
+        ) {
+          html += `</span>`
+        }
+      }
     }
   }
   // TODO: Close with </body></html> tags
