@@ -7,3 +7,10 @@
     color-scheme: dark;
   }
 }
+
+.user-highlight {
+  @apply bg-slate-300;
+  @apply py-1;
+  @apply border-b;
+  @apply border-slate-400;
+}

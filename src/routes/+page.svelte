@@ -2,7 +2,7 @@
   import type { ActionData } from './$types'
 
   import { slide } from 'svelte/transition'
-  import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
+  import { htmlToJdom, jdomToText, jdomToHtml, type JDOM, type UserMark } from '$lib/util'
   import { onMount } from 'svelte'
 
   export let form: ActionData
@@ -12,9 +12,10 @@
   let readingOrder: object[] = []
   let url = ''
   let renderedDoc = ''
+  let jdom: JDOM
 
   if (form && form.html) {
-    const jdom = htmlToJdom(form.html)
+    jdom = htmlToJdom(form.html)
     readableContent = jdomToText(jdom)
     renderedDoc = jdomToHtml(jdom)
     marks = jdom.marks
@@ -23,39 +24,60 @@
   }
 
   // handle hiding and showing different sections
-  let showRawTextContent = true
-  let showJDOM = true
+  let showRawTextContent = false
+  let showJDOM = false
   let showRenderedDoc = true
 
+  let userMarks: UserMark[] = []
   onMount(() => {
     // handle highlighting selected text
-    type UserMark = {
-      start: number
-      end: number
-      markType: string
-    }
-    let userMarks: UserMark[] = []
-    document.addEventListener('selectionchange', (event) => {
-      console.log('selection event', event)
+
+    document.addEventListener('mouseup', (event) => {
       const selection = window.getSelection()
+
       if (!selection) return
-      console.log('selection', selection)
-      // calculate the start based on the data-mark-start attribute
-      const start = 1
 
-      // and the end based on the data-mark-end attribute
-      const end = 1
+      if (selection.anchorNode?.parentNode?.parentNode?.nodeName !== 'ARTICLE') return
 
-      const userMark: UserMark = {
-        start,
-        end,
-        markType: 'highlight'
+      if (selection?.rangeCount) {
+        const range = selection.getRangeAt(0)
+        const startElement = range.startContainer.parentElement
+        let startElementStart: number = 0
+        let startIndex: number = 0
+        if (startElement?.hasAttribute('data-mark-start')) {
+          startElementStart = startElement.getAttribute('data-mark-start') as unknown as number
+          startIndex = parseInt(startElementStart) + parseInt(selection.anchorOffset)
+        }
+
+        const endElement = range.endContainer.parentElement
+        let endElementStart: number = 0
+        let endIndex: number = 0
+        if (endElement?.hasAttribute('data-mark-start')) {
+          endElementStart = endElement.getAttribute('data-mark-start') as unknown as number
+          endIndex = parseInt(endElementStart) + parseInt(selection.focusOffset)
+        }
+
+        if (startIndex === endIndex) return
+
+        if (startIndex > 0 && endIndex > 0) {
+          // Iterate over the reading order blocks between the start and the end
+          const userMark: UserMark = {
+            start: startIndex,
+            end: endIndex,
+            markType: 'highlight'
+          }
+          if (
+            !userMarks.some((mark) => mark.start === userMark.start && mark.end === userMark.end)
+          ) {
+            console.log('userMark', userMark)
+            userMarks.push(userMark)
+            userMarks = userMarks
+          }
+        }
       }
-      userMarks.push(userMark)
+      renderedDoc = jdomToHtml(jdom, userMarks)
     })
   })
-  // To render the highlight, iterate over the Reading Order blocks
-  // from the start location to the end location and "apply the style"
 </script>
 
 <!-- Uncomment to debug the data returned by the form -->
@@ -100,7 +122,7 @@
     </div>
   {/if}
 </div>
-<div class="p-5 pl-10">
+<div class="{showJDOM ? '' : 'border-b border-black dark:border-white'} p-5 pl-10">
   <h1 class="text-xl font-medium relative mb-5">
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <span
@@ -154,13 +176,18 @@
     Rendered Doc
   </h1>
   {#if showRenderedDoc}
-    <div
-      class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900"
-      transition:slide
-    >
-      <article class="prose dark:prose-dark">
-        {@html renderedDoc}
-      </article>
+    <div class="flex" transition:slide>
+      <div class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 w-3/4">
+        <article class="prose dark:prose-dark">
+          {@html renderedDoc}
+        </article>
+      </div>
+      <div
+        class="border border-black border-l-0 p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 w-1/4"
+      >
+        <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}
+        </pre>
+      </div>
     </div>
   {/if}
 </div>
