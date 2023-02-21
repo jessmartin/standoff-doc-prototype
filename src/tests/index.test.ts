@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { htmlToJdom, jdomToText, jdomToHtml } from '../lib/util'
+import { articleHtml } from './articleFixture.test'
 
 const jdom = htmlToJdom('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
 
@@ -58,6 +59,18 @@ describe('htmlToJdom', () => {
       '<html><head><meta http-equiv="x-ua-compatible" content="ie=edge"/></head><body><p>The fox <b>jumped</b>.</p><br/><meta attr="something"/><p>More content</p></body></html>'
     )
     expect(jdom.readingOrder.length).toBe(4)
+  })
+
+  describe('with real-world HTML', () => {
+    it('all paragraph elements should have a start and an end', () => {
+      const realWorldJdom = htmlToJdom(articleHtml)
+      const paragraphs = realWorldJdom.marks.filter((m) => m.type === 'paragraph')
+      expect(paragraphs).toMatchObject({
+        start: expect.any(Number),
+        end: expect.any(Number),
+        type: 'paragraph'
+      })
+    })
   })
 })
 
