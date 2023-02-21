@@ -29,9 +29,22 @@ const nodesToMark: { [index: string]: string } = {
   h1: 'heading1',
   h2: 'heading2',
   h3: 'heading3',
+  h4: 'heading4',
+  h5: 'heading5',
+  h6: 'heading6',
   p: 'paragraph',
   b: 'bold',
   strong: 'bold'
+}
+
+const markTypesToTag: { [index: string]: string } = {
+  heading1: 'h1',
+  heading2: 'h2',
+  heading3: 'h3',
+  heading4: 'h4',
+  heading6: 'h6',
+  paragraph: 'p',
+  bold: 'b'
 }
 
 const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer']
@@ -82,13 +95,43 @@ export const jdomToText = (jdom: JDOM) => {
   return readingOrderContent
 }
 
+// TODO: Build a HAST and generate the HTML string
 export const jdomToHtml = (jdom: JDOM) => {
-  // Add a <html><head></head><body> tags at the beginning
-  // Iterate over each reading order element
-  // -- Iterate over each character in the reading order element
-  // ---- Find any marks that match the index of the character
-  // ------ If index matches a start mark, add the start tag
-  // ------ If index matches an end mark, add the end tag
-  // Close with </body></html> tags
-  return '<h1>Some content</h1><p>something</p>'
+  // TODO: Add a <html><head></head><body> tags at the beginning
+  let html = ''
+  for (const readingOrderElem of jdom.readingOrder) {
+    const { start, end } = readingOrderElem as { start: number; end: number }
+    const content = jdom.rawContent.slice(start, end)
+
+    // Iterate over each character in the content string
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i]
+      // If index matches a start mark, add the start tag
+      jdom.marks.map((mark) => {
+        if (mark.start === start + i) {
+          html += `<${markTypesToTag[mark.type]} data-mark-start="${mark.start}" data-mark-end="${
+            mark.end
+          }">`
+          html += char
+        }
+      })
+      // If index matches an end mark, add the end tag
+      jdom.marks.map((mark) => {
+        if (mark.end === start + i + 1) {
+          html += char
+          html += `</${markTypesToTag[mark.type]}>`
+        }
+      })
+      // If index matches no start or end, just add the character
+      const matchTag = jdom.marks.some((mark) => {
+        if (mark.start === start + i || mark.end === start + i + 1) {
+          return true
+        }
+      })
+      if (!matchTag) html += char
+    }
+  }
+  // TODO: Close with </body></html> tags
+
+  return html
 }

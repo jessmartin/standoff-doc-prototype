@@ -3,6 +3,7 @@
 
   import { slide } from 'svelte/transition'
   import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
+  import { onMount } from 'svelte'
 
   export let form: ActionData
 
@@ -25,8 +26,39 @@
   let showRawTextContent = true
   let showJDOM = true
   let showRenderedDoc = true
+
+  onMount(() => {
+    // handle highlighting selected text
+    type UserMark = {
+      start: number
+      end: number
+      markType: string
+    }
+    let userMarks: UserMark[] = []
+    document.addEventListener('selectionchange', (event) => {
+      console.log('selection event', event)
+      const selection = window.getSelection()
+      if (!selection) return
+      console.log('selection', selection)
+      // calculate the start based on the data-mark-start attribute
+      const start = 1
+
+      // and the end based on the data-mark-end attribute
+      const end = 1
+
+      const userMark: UserMark = {
+        start,
+        end,
+        markType: 'highlight'
+      }
+      userMarks.push(userMark)
+    })
+  })
+  // To render the highlight, iterate over the Reading Order blocks
+  // from the start location to the end location and "apply the style"
 </script>
 
+<!-- Uncomment to debug the data returned by the form -->
 <!-- {#if form}
   <p>Form data:</p>
   <pre>{JSON.stringify(form, null, 2)}</pre>

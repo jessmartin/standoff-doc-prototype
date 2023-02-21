@@ -73,14 +73,19 @@ describe('jdomToText', () => {
   })
 })
 
-describe.todo('toHTMLFromJDOM', () => {
+describe('toHTMLFromJDOM', () => {
   it('should return a string', () => {
     const html = jdomToHtml(jdom)
     expect(typeof html).toBe('string')
   })
 
+  it('should support <b> tags', () => {
+    const html = jdomToHtml(jdom)
+    expect(html).toContain('The fox <b>jumped</b>.')
+  })
+
   it('should omit non-reader content such as <nav> and its children', () => {
     const html = jdomToHtml(jdom)
-    expect(html).not.toContain('<h1>Content</h1>')
+    expect(html).not.toContain('Content')
   })
 })
