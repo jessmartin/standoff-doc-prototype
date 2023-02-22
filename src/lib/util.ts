@@ -122,8 +122,6 @@ export const jdomToText = (jdom: JDOM) => {
 
 // TODO: Build a HAST and generate the HTML string
 export const jdomToHtml = (jdom: JDOM, userMarks: UserMark[] = []) => {
-  console.log('jdomToHtml', jdom, userMarks)
-  console.log('rawContent length', jdom.rawContent.length)
   // TODO: Add a <html><head></head><body> tags at the beginning
   let html = ''
   for (const readingOrderElem of jdom.readingOrder) {

@@ -32,6 +32,10 @@
   onMount(() => {
     // handle highlighting selected text
 
+    // This is very simple logic, and does not work well with anything beyond a
+    // single block-level element containing text.
+    // It also doesn't support dividing a selection into multiple userMarks based
+    // on the readingOrder blocks that it spans.
     document.addEventListener('mouseup', (event) => {
       const selection = window.getSelection()
 
@@ -54,10 +58,10 @@
         let endIndex: number = 0
         if (endElement?.hasAttribute('data-mark-start')) {
           endElementStart = endElement.getAttribute('data-mark-start') as unknown as number
-          endIndex = parseInt(endElementStart) + parseInt(selection.focusOffset)
+          endIndex = parseInt(endElementStart) + parseInt(selection.focusOffset) - 1
         }
 
-        if (startIndex === endIndex) return
+        if (startIndex >= endIndex + 1) return
 
         if (startIndex > 0 && endIndex > 0) {
           // Iterate over the reading order blocks between the start and the end
@@ -69,7 +73,6 @@
           if (
             !userMarks.some((mark) => mark.start === userMark.start && mark.end === userMark.end)
           ) {
-            console.log('userMark', userMark)
             userMarks.push(userMark)
             userMarks = userMarks
           }
