@@ -1,35 +1,60 @@
 <script lang="ts">
   import type { ActionData } from './$types'
+  import type { JDOM, UserMark } from '$lib/util'
 
-  import { slide } from 'svelte/transition'
-  import { htmlToJdom, jdomToText, jdomToHtml, type JDOM, type UserMark } from '$lib/util'
   import { onMount } from 'svelte'
+  import { slide } from 'svelte/transition'
+  import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
+  import { db, getDefaultJdom, saveArticle } from '$lib/db'
+  import { liveQuery } from 'dexie'
 
   export let form: ActionData
 
+  let jdom: JDOM | undefined
   let readableContent = ''
-  let marks: object[] = []
-  let readingOrder: object[] = []
   let url = ''
   let renderedDoc = ''
-  let jdom: JDOM
-
-  if (form && form.html) {
-    jdom = htmlToJdom(form.html)
-    readableContent = jdomToText(jdom)
-    renderedDoc = jdomToHtml(jdom)
-    marks = jdom.marks
-    readingOrder = jdom.readingOrder
-    url = form.url
-  }
+  let jdomId = 0
 
   // handle hiding and showing different sections
   let showRawTextContent = false
   let showJDOM = false
   let showRenderedDoc = true
 
+  // Support user's ability to highlight text
   let userMarks: UserMark[] = []
-  onMount(() => {
+
+  $: articles = liveQuery(async () => db.jdoms.toArray())
+
+  const loadJdomContent = async () => {
+    if (jdom) {
+      if (jdom.id) jdomId = jdom.id
+      url = jdom.url
+      readableContent = jdomToText(jdom)
+      userMarks = await db.highlights.where('jdomId').equals(jdomId).toArray()
+      renderedDoc = jdomToHtml(jdom, userMarks)
+    }
+  }
+
+  onMount(async () => {
+    // When the page loads, check if there has been a form post
+    if (form && form.html) {
+      // If there is a form post, parse the HTML and display the results
+      url = form.url
+      jdom = htmlToJdom(url, form.html)
+      loadJdomContent()
+      // Add the JDOM to the db
+      const id = await saveArticle(jdom)
+      if (id) jdomId = parseInt(id.toString())
+    } else {
+      // If there is no form post, load the article from the db
+      jdom = await getDefaultJdom()
+
+      if (jdom) {
+        loadJdomContent()
+      }
+    }
+
     // handle highlighting selected text
 
     // This is very simple logic, and does not work well with anything beyond a
@@ -66,6 +91,7 @@
         if (startIndex > 0 && endIndex > 0) {
           // Iterate over the reading order blocks between the start and the end
           const userMark: UserMark = {
+            jdomId: jdomId,
             start: startIndex,
             end: endIndex,
             markType: 'highlight'
@@ -74,11 +100,12 @@
             !userMarks.some((mark) => mark.start === userMark.start && mark.end === userMark.end)
           ) {
             userMarks.push(userMark)
+            db.highlights.add(userMark)
             userMarks = userMarks
           }
         }
       }
-      renderedDoc = jdomToHtml(jdom, userMarks)
+      if (jdom) renderedDoc = jdomToHtml(jdom, userMarks)
     })
   })
 </script>
@@ -89,14 +116,14 @@
   <pre>{JSON.stringify(form, null, 2)}</pre>
 {/if} -->
 
-<div class="border-b border-black dark:border-white p-5 pl-10">
-  <form method="POST">
+<div class="border-b border-black dark:border-white p-5">
+  <form method="POST" class="inline-block w-1/2">
     <input
       type="text"
       name="url"
       value={url}
       placeholder="Enter URL"
-      class="w-1/4 border border-black dark:border-white dark:bg-slate-900 p-2"
+      class="w-3/4 border border-black dark:border-white dark:bg-slate-900 p-2"
     />
     <button
       type="submit"
@@ -104,6 +131,43 @@
       >Import</button
     >
   </form>
+
+  <div class="inline-block float-right">
+    <select
+      name="articles"
+      id="articles"
+      bind:value={jdomId}
+      class="border border-black dark:border-white dark:bg-slate-900 p-2 text-right"
+      on:change={async (event) => {
+        if (jdomId === 0) console.log('selected id: ', jdomId)
+        jdom = await db.jdoms.get(jdomId)
+        if (jdom) loadJdomContent()
+      }}
+    >
+      {#if $articles}
+        {#each $articles as article (article.id)}
+          <option value={article.id}>{article.url}</option>
+        {/each}
+      {/if}
+    </select>
+
+    {#if $articles && $articles.length > 0}
+      <button
+        type="button"
+        class="p-2 after:content-['💣'] hover:after:content-['💥'] duration-100 ease-in-out transform hover:scale-150"
+        title="Clear all articles"
+        on:click={async () => {
+          await db.jdoms.clear()
+          jdomId = 0
+          jdom = undefined
+          url = ''
+          readableContent = ''
+          renderedDoc = ''
+          userMarks = []
+        }}
+      />
+    {/if}
+  </div>
 </div>
 <div class="border-b border-black dark:border-white p-5 pl-10">
   <h1 class="text-xl font-medium relative {showRawTextContent ? 'mb-5' : 'mb-0'}" transition:slide>
@@ -121,7 +185,7 @@
       class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 overflow-scroll max-h-52"
       transition:slide
     >
-      <pre>{#if form}{form.html}{/if}</pre>
+      <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
     </div>
   {/if}
 </div>
@@ -154,7 +218,7 @@
       <div
         class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
       >
-        <pre>{marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+        <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
       </div>
     </div>
     <div class="border-b border-black dark:border-white p-5 pl-10 w-1/2">
@@ -162,7 +226,9 @@
       <div
         class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
       >
-        <pre>{readingOrder.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+        <pre>{#if jdom}{jdom.readingOrder
+              .map((e) => JSON.stringify(e, null, 2))
+              .join('\n')}{/if}</pre>
       </div>
     </div>
   </div>
