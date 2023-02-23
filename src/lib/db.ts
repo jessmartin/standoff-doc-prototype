@@ -1,14 +1,16 @@
 import Dexie, { type Table } from 'dexie'
 
-import type { JDOM } from './util'
+import type { JDOM, UserMark } from './util'
 
 export class MySubClassedDexie extends Dexie {
   jdoms!: Table<JDOM>
+  highlights!: Table<UserMark>
 
   constructor() {
     super('standoffMarkup')
-    this.version(1).stores({
-      jdoms: '++id, url, rawContent' // Primary key and indexed props
+    this.version(2).stores({
+      jdoms: '++id, url, rawContent', // Primary key and indexed props
+      highlights: '++id, jdomId' // Primary key and indexed props
     })
   }
 }

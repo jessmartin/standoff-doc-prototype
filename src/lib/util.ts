@@ -24,6 +24,8 @@ export interface JDOM {
 }
 
 export interface UserMark {
+  id?: number
+  jdomId?: number
   start: number
   end: number
   markType: string

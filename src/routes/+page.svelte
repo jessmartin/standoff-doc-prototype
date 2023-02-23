@@ -7,7 +7,6 @@
   import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
   import { db, getDefaultJdom, saveArticle } from '$lib/db'
   import { liveQuery } from 'dexie'
-  import { select_value } from 'svelte/internal'
 
   export let form: ActionData
 
@@ -27,14 +26,23 @@
 
   $: articles = liveQuery(async () => db.jdoms.toArray())
 
+  const loadJdomContent = async () => {
+    if (jdom) {
+      if (jdom.id) jdomId = jdom.id
+      url = jdom.url
+      readableContent = jdomToText(jdom)
+      userMarks = await db.highlights.where('jdomId').equals(jdomId).toArray()
+      renderedDoc = jdomToHtml(jdom, userMarks)
+    }
+  }
+
   onMount(async () => {
     // When the page loads, check if there has been a form post
     if (form && form.html) {
       // If there is a form post, parse the HTML and display the results
       url = form.url
       jdom = htmlToJdom(url, form.html)
-      readableContent = jdomToText(jdom)
-      renderedDoc = jdomToHtml(jdom)
+      loadJdomContent()
       // Add the JDOM to the db
       const id = await saveArticle(jdom)
       if (id) jdomId = parseInt(id.toString())
@@ -43,10 +51,7 @@
       jdom = await getDefaultJdom()
 
       if (jdom) {
-        url = jdom.url
-        readableContent = jdomToText(jdom)
-        renderedDoc = jdomToHtml(jdom)
-        if (jdom.id) jdomId = jdom.id
+        loadJdomContent()
       }
     }
 
@@ -86,6 +91,7 @@
         if (startIndex > 0 && endIndex > 0) {
           // Iterate over the reading order blocks between the start and the end
           const userMark: UserMark = {
+            jdomId: jdomId,
             start: startIndex,
             end: endIndex,
             markType: 'highlight'
@@ -94,6 +100,7 @@
             !userMarks.some((mark) => mark.start === userMark.start && mark.end === userMark.end)
           ) {
             userMarks.push(userMark)
+            db.highlights.add(userMark)
             userMarks = userMarks
           }
         }
@@ -134,12 +141,7 @@
       on:change={async (event) => {
         if (jdomId === 0) console.log('selected id: ', jdomId)
         jdom = await db.jdoms.get(jdomId)
-        console.log('jdom: ', jdom)
-        if (jdom) {
-          url = jdom.url
-          readableContent = jdomToText(jdom)
-          renderedDoc = jdomToHtml(jdom)
-        }
+        if (jdom) loadJdomContent()
       }}
     >
       {#if $articles}
@@ -148,6 +150,23 @@
         {/each}
       {/if}
     </select>
+
+    {#if $articles && $articles.length > 0}
+      <button
+        type="button"
+        class="p-2 after:content-['💣'] hover:after:content-['💥'] duration-100 ease-in-out transform hover:scale-150"
+        title="Clear all articles"
+        on:click={async () => {
+          await db.jdoms.clear()
+          jdomId = 0
+          jdom = undefined
+          url = ''
+          readableContent = ''
+          renderedDoc = ''
+          userMarks = []
+        }}
+      />
+    {/if}
   </div>
 </div>
 <div class="border-b border-black dark:border-white p-5 pl-10">
