@@ -3,31 +3,40 @@ import type { Node, Element } from 'parse5/dist/tree-adapters/default'
 
 let readingOrderIndex = 0
 
-export type Mark = {
+export interface Mark {
   type: string
   start: number
   end: number
 }
 
-export type JDOM = {
-  rawContent: string
-  marks: Mark[]
-  readingOrder: object[]
+export interface ReadingOrder {
+  start: number
+  end: number
+  index: number
 }
 
-export type UserMark = {
+export interface JDOM {
+  id?: number
+  url: string
+  rawContent: string
+  marks: Mark[]
+  readingOrder: ReadingOrder[]
+}
+
+export interface UserMark {
   start: number
   end: number
   markType: string
 }
 
-export const htmlToJdom = (html: string) => {
+export const htmlToJdom = (url: string, html: string) => {
   readingOrderIndex = 0
 
   const tree = parse5.parse(html, { sourceCodeLocationInfo: true })
 
   const jdom: JDOM = {
     rawContent: html,
+    url: url,
     marks: [],
     readingOrder: []
   }

@@ -2,34 +2,47 @@
   import type { ActionData } from './$types'
 
   import { slide } from 'svelte/transition'
-  import { htmlToJdom, jdomToText, jdomToHtml, type JDOM, type UserMark } from '$lib/util'
+  import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
+  import type { JDOM, UserMark, Mark, ReadingOrder } from '$lib/util'
   import { onMount } from 'svelte'
+  import { getDefaultJDOM, saveArticle } from '$lib/db'
 
   export let form: ActionData
 
+  let jdom: JDOM | undefined
   let readableContent = ''
-  let marks: object[] = []
-  let readingOrder: object[] = []
   let url = ''
   let renderedDoc = ''
-  let jdom: JDOM
-
-  if (form && form.html) {
-    jdom = htmlToJdom(form.html)
-    readableContent = jdomToText(jdom)
-    renderedDoc = jdomToHtml(jdom)
-    marks = jdom.marks
-    readingOrder = jdom.readingOrder
-    url = form.url
-  }
 
   // handle hiding and showing different sections
   let showRawTextContent = false
   let showJDOM = false
   let showRenderedDoc = true
 
+  // Support user's ability to highlight text
   let userMarks: UserMark[] = []
-  onMount(() => {
+
+  onMount(async () => {
+    // When the page loads, check if there has been a form post
+    if (form && form.html) {
+      // If there is a form post, parse the HTML and display the results
+      url = form.url
+      jdom = htmlToJdom(url, form.html)
+      readableContent = jdomToText(jdom)
+      renderedDoc = jdomToHtml(jdom)
+      // Add the JDOM to the db
+      const id = saveArticle(jdom)
+    } else {
+      // If there is no form post, load the article from the db
+      jdom = await getDefaultJDOM()
+
+      if (jdom) {
+        url = jdom.url
+        readableContent = jdomToText(jdom)
+        renderedDoc = jdomToHtml(jdom)
+      }
+    }
+
     // handle highlighting selected text
 
     // This is very simple logic, and does not work well with anything beyond a
@@ -78,7 +91,7 @@
           }
         }
       }
-      renderedDoc = jdomToHtml(jdom, userMarks)
+      if (jdom) renderedDoc = jdomToHtml(jdom, userMarks)
     })
   })
 </script>
@@ -121,7 +134,7 @@
       class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 overflow-scroll max-h-52"
       transition:slide
     >
-      <pre>{#if form}{form.html}{/if}</pre>
+      <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
     </div>
   {/if}
 </div>
@@ -154,7 +167,7 @@
       <div
         class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
       >
-        <pre>{marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+        <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
       </div>
     </div>
     <div class="border-b border-black dark:border-white p-5 pl-10 w-1/2">
@@ -162,7 +175,9 @@
       <div
         class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
       >
-        <pre>{readingOrder.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+        <pre>{#if jdom}{jdom.readingOrder
+              .map((e) => JSON.stringify(e, null, 2))
+              .join('\n')}{/if}</pre>
       </div>
     </div>
   </div>

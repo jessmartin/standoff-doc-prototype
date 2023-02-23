@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { htmlToJdom, jdomToText, jdomToHtml, type UserMark } from '../lib/util'
 import { articleHtml } from './articleFixture'
 
-const jdom = htmlToJdom('<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>')
+const jdom = htmlToJdom(
+  'http://foxes.com',
+  '<h1>Fox</h1><nav><h1>Content</h1></nav><p>The fox <b>jumped</b>.</p>'
+)
 
 describe('htmlToJdom', () => {
   it('should return a JDOM object', () => {
@@ -49,6 +52,7 @@ describe('htmlToJdom', () => {
 
   it('should handle DOCTYPE', () => {
     const jdom = htmlToJdom(
+      'http://foxes.com',
       '<!DOCTYPE html><html><head></head><body><p>The fox <b>jumped</b>.</p></body></html>'
     )
     expect(jdom.readingOrder.length).toBe(3)
@@ -56,6 +60,7 @@ describe('htmlToJdom', () => {
 
   it('should handle self-closing tags', () => {
     const jdom = htmlToJdom(
+      'http://foxes.com',
       '<html><head><meta http-equiv="x-ua-compatible" content="ie=edge"/></head><body><p>The fox <b>jumped</b>.</p><br/><meta attr="something"/><p>More content</p></body></html>'
     )
     expect(jdom.readingOrder.length).toBe(4)
@@ -63,7 +68,7 @@ describe('htmlToJdom', () => {
 
   describe('with real-world HTML', () => {
     it('all paragraph elements should have a start and an end', () => {
-      const realWorldJdom = htmlToJdom(articleHtml)
+      const realWorldJdom = htmlToJdom('http://foxes.com', articleHtml)
       const paragraphs = realWorldJdom.marks.filter((m) => m.type === 'paragraph')
       expect(paragraphs).toMatchObject({
         start: expect.any(Number),
@@ -103,7 +108,7 @@ describe('toHTMLFromJDOM', () => {
   })
 
   it('should render <span class="highlight"> tags for user marks', () => {
-    const jdom = htmlToJdom('<p>The fox <b>jumped</b>.</p>')
+    const jdom = htmlToJdom('http://foxes.com', '<p>The fox <b>jumped</b>.</p>')
     const userMarks: UserMark[] = []
     userMarks.push({ markType: 'highlight', start: 3, end: 9 })
     const html = jdomToHtml(jdom, userMarks)
