@@ -22,16 +22,18 @@ export const saveArticle = async (jdom: JDOM) => {
     readingOrder: jdom.readingOrder
   }
   try {
-    const id = await db.jdoms.add(article)
-
-    console.log(`Added article '${jdom.url}' and got id: ${id}`)
-    return id
+    if ((await db.jdoms.where('url').equals(jdom.url).count()) == 0) {
+      const id = await db.jdoms.add(article)
+      console.log(`Added article '${jdom.url}' and got id: ${id}`)
+      return id
+    }
+    console.log('Article already exists in db')
   } catch (error) {
     console.log('Failed to add article to db: ', error)
   }
 }
 
-export const getDefaultJDOM = async (): Promise<JDOM | undefined> => {
+export const getDefaultJdom = async (): Promise<JDOM | undefined> => {
   try {
     const jdom = await db.jdoms.orderBy(':id').first()
     return jdom

@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { ActionData } from './$types'
+  import type { JDOM, UserMark } from '$lib/util'
 
+  import { onMount } from 'svelte'
   import { slide } from 'svelte/transition'
   import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
-  import type { JDOM, UserMark, Mark, ReadingOrder } from '$lib/util'
-  import { onMount } from 'svelte'
-  import { getDefaultJDOM, saveArticle } from '$lib/db'
+  import { db, getDefaultJdom, saveArticle } from '$lib/db'
+  import { liveQuery } from 'dexie'
+  import { select_value } from 'svelte/internal'
 
   export let form: ActionData
 
@@ -13,6 +15,7 @@
   let readableContent = ''
   let url = ''
   let renderedDoc = ''
+  let jdomId = 0
 
   // handle hiding and showing different sections
   let showRawTextContent = false
@@ -21,6 +24,8 @@
 
   // Support user's ability to highlight text
   let userMarks: UserMark[] = []
+
+  $: articles = liveQuery(async () => db.jdoms.toArray())
 
   onMount(async () => {
     // When the page loads, check if there has been a form post
@@ -31,15 +36,17 @@
       readableContent = jdomToText(jdom)
       renderedDoc = jdomToHtml(jdom)
       // Add the JDOM to the db
-      const id = saveArticle(jdom)
+      const id = await saveArticle(jdom)
+      if (id) jdomId = parseInt(id.toString())
     } else {
       // If there is no form post, load the article from the db
-      jdom = await getDefaultJDOM()
+      jdom = await getDefaultJdom()
 
       if (jdom) {
         url = jdom.url
         readableContent = jdomToText(jdom)
         renderedDoc = jdomToHtml(jdom)
+        if (jdom.id) jdomId = jdom.id
       }
     }
 
@@ -102,14 +109,14 @@
   <pre>{JSON.stringify(form, null, 2)}</pre>
 {/if} -->
 
-<div class="border-b border-black dark:border-white p-5 pl-10">
-  <form method="POST">
+<div class="border-b border-black dark:border-white p-5">
+  <form method="POST" class="inline-block w-1/2">
     <input
       type="text"
       name="url"
       value={url}
       placeholder="Enter URL"
-      class="w-1/4 border border-black dark:border-white dark:bg-slate-900 p-2"
+      class="w-3/4 border border-black dark:border-white dark:bg-slate-900 p-2"
     />
     <button
       type="submit"
@@ -117,6 +124,31 @@
       >Import</button
     >
   </form>
+
+  <div class="inline-block float-right">
+    <select
+      name="articles"
+      id="articles"
+      bind:value={jdomId}
+      class="border border-black dark:border-white dark:bg-slate-900 p-2 text-right"
+      on:change={async (event) => {
+        if (jdomId === 0) console.log('selected id: ', jdomId)
+        jdom = await db.jdoms.get(jdomId)
+        console.log('jdom: ', jdom)
+        if (jdom) {
+          url = jdom.url
+          readableContent = jdomToText(jdom)
+          renderedDoc = jdomToHtml(jdom)
+        }
+      }}
+    >
+      {#if $articles}
+        {#each $articles as article (article.id)}
+          <option value={article.id}>{article.url}</option>
+        {/each}
+      {/if}
+    </select>
+  </div>
 </div>
 <div class="border-b border-black dark:border-white p-5 pl-10">
   <h1 class="text-xl font-medium relative {showRawTextContent ? 'mb-5' : 'mb-0'}" transition:slide>
