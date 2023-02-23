@@ -1,4 +1,6 @@
-# SvelteKit Starter
+# Standoff Document Prototype
+
+This is a prototype designed to explore the benefit of using [standoff markup](https://en.wikipedia.org/wiki/Overlapping_markup#Stand-off_markup) as a storage format for documents.
 
 ## Developing
 
