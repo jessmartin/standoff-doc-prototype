@@ -3,7 +3,6 @@
   import type { JDOM, UserMark } from '$lib/util'
 
   import { onMount } from 'svelte'
-  import { slide } from 'svelte/transition'
   import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
   import { db, getDefaultJdom, saveArticle } from '$lib/db'
   import { liveQuery } from 'dexie'
@@ -233,31 +232,35 @@
   </div>
 </div>
 
-<div class="flex flex-wrap">
-  <div class="grow dark:bg-[#242424] overflow-auto" style="max-width: calc(100% - 320px)">
-    {#if activeMainPanel === 'rendered'}
-      <article class="prose dark:prose-dark dark:text-white">
-        {@html renderedDoc}
-      </article>
-    {/if}
-    {#if activeMainPanel === 'text'}
-      Text
-    {/if}
-    {#if activeMainPanel === 'original'}
-      <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
-    {/if}
+{#if jdom}
+  <div class="flex flex-wrap">
+    <div class="grow dark:bg-[#242424] overflow-auto" style="max-width: calc(100% - 320px)">
+      {#if activeMainPanel === 'rendered'}
+        <article class="prose dark:prose-dark dark:text-white">
+          {@html renderedDoc}
+        </article>
+      {/if}
+      {#if activeMainPanel === 'text'}
+        Text
+      {/if}
+      {#if activeMainPanel === 'original'}
+        <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
+      {/if}
+    </div>
+    <div class="w-80 dark:bg-[#242424] border-l dark:border-[#3D3D3D]">
+      {#if activeSidebar === 'marks'}
+        <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
+      {/if}
+      {#if activeSidebar === 'readingOrder'}
+        <pre>{#if jdom}{jdom.readingOrder
+              .map((e) => JSON.stringify(e, null, 2))
+              .join('\n')}{/if}</pre>
+      {/if}
+      {#if activeSidebar === 'highlights'}
+        <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+      {/if}
+    </div>
   </div>
-  <div class="w-80 dark:bg-[#242424] border-l dark:border-[#3D3D3D]">
-    {#if activeSidebar === 'marks'}
-      <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
-    {/if}
-    {#if activeSidebar === 'readingOrder'}
-      <pre>{#if jdom}{jdom.readingOrder
-            .map((e) => JSON.stringify(e, null, 2))
-            .join('\n')}{/if}</pre>
-    {/if}
-    {#if activeSidebar === 'highlights'}
-      <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
-    {/if}
-  </div>
-</div>
+{:else}
+  <p class="text-center mt-10">Enter a URL above to Import a page.</p>
+{/if}
