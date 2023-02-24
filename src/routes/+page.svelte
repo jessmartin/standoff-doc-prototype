@@ -15,13 +15,6 @@
   let url = ''
   let renderedDoc = ''
   let jdomId = 0
-
-  // handle hiding and showing different sections
-  let showRawTextContent = false
-  let showJDOM = false
-  let showRenderedDoc = true
-
-  // Support user's ability to highlight text
   let userMarks: UserMark[] = []
 
   $: articles = liveQuery(async () => db.jdoms.toArray())
@@ -54,8 +47,6 @@
         loadJdomContent()
       }
     }
-
-    // handle highlighting selected text
 
     // This is very simple logic, and does not work well with anything beyond a
     // single block-level element containing text.
@@ -108,155 +99,165 @@
       if (jdom) renderedDoc = jdomToHtml(jdom, userMarks)
     })
   })
+
+  const clearDatabases = async () => {
+    await db.jdoms.clear()
+    jdomId = 0
+    jdom = undefined
+    url = ''
+    readableContent = ''
+    renderedDoc = ''
+    userMarks = []
+  }
+
+  let activeMainPanel = 'original'
+  let activeSidebar = 'highlights'
 </script>
 
-<!-- Uncomment to debug the data returned by the form -->
-<!-- {#if form}
-  <p>Form data:</p>
-  <pre>{JSON.stringify(form, null, 2)}</pre>
-{/if} -->
+<div class="border-b border-black dark:bg-[#333333] dark:border-[#3D3D3D] flex flex-grow">
+  <div class="grow">
+    <nav class="inline-block mr-3">
+      <ul class="list-none dark:bg-[#292929] ">
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <li
+          class="bg-[] dark:bg-[#292929] p-1 px-2 dark:hover:bg-black dark:hover:text-white inline-block hover:cursor-pointer {activeMainPanel ===
+          'original'
+            ? 'bg-white text-black border-x border-black dark:bg-black dark:text-white'
+            : ''}"
+          on:click={() => (activeMainPanel = 'original')}
+        >
+          Original
+        </li>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <li
+          class="bg-[] dark:bg-[#292929] p-1 px-2 dark:hover:bg-black dark:hover:text-white inline-block hover:cursor-pointer {activeMainPanel ===
+          'text'
+            ? 'bg-white text-black border-x border-black dark:bg-black dark:text-white'
+            : ''}"
+          on:click={() => (activeMainPanel = 'text')}
+        >
+          Text
+        </li>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <li
+          class="bg-[] dark:bg-[#292929] p-1 px-2 dark:hover:bg-black dark:hover:text-white inline-block hover:cursor-pointer {activeMainPanel ===
+          'rendered'
+            ? 'bg-white text-black border-x border-black dark:bg-black dark:text-white'
+            : ''}"
+          on:click={() => (activeMainPanel = 'rendered')}
+        >
+          Rendered
+        </li>
+      </ul>
+    </nav>
 
-<div class="border-b border-black dark:border-white p-5">
-  <form method="POST" class="inline-block w-1/2">
-    <input
-      type="text"
-      name="url"
-      value={url}
-      placeholder="Enter URL"
-      class="w-3/4 border border-black dark:border-white dark:bg-slate-900 p-2"
-    />
-    <button
-      type="submit"
-      class="bg-[#f4f7e7] border border-black dark:border-white dark:bg-slate-900 p-2"
-      >Import</button
-    >
-  </form>
+    <form method="POST" class="w-1/3 inline-block mr-3">
+      <div class="flex flex-grow">
+        <input
+          type="text"
+          name="url"
+          value={url}
+          placeholder="Enter URL"
+          class="border-x border-black dark:border-[#3D3D3D] dark:bg-[#242424] p-1 px-2 grow"
+        /><button
+          type="submit"
+          class="bg-[#f4f7e7] border-r border-black dark:border-[#3D3D3D] dark:bg-[#242424] p-1 px-2 dark:hover:bg-black dark:hover:text-white w-16"
+          >Import</button
+        >
+      </div>
+    </form>
 
-  <div class="inline-block float-right">
-    <select
-      name="articles"
-      id="articles"
-      bind:value={jdomId}
-      class="border border-black dark:border-white dark:bg-slate-900 p-2 text-right"
-      on:change={async (event) => {
-        if (jdomId === 0) console.log('selected id: ', jdomId)
-        jdom = await db.jdoms.get(jdomId)
-        if (jdom) loadJdomContent()
-      }}
-    >
-      {#if $articles}
-        {#each $articles as article (article.id)}
-          <option value={article.id}>{article.url}</option>
-        {/each}
-      {/if}
-    </select>
-
-    {#if $articles && $articles.length > 0}
-      <button
-        type="button"
-        class="p-2 after:content-['💣'] hover:after:content-['💥'] duration-100 ease-in-out transform hover:scale-150"
-        title="Clear all articles"
-        on:click={async () => {
-          await db.jdoms.clear()
-          jdomId = 0
-          jdom = undefined
-          url = ''
-          readableContent = ''
-          renderedDoc = ''
-          userMarks = []
+    <div class="inline-block">
+      <select
+        name="articles"
+        id="articles"
+        bind:value={jdomId}
+        class="border-x border-black dark:border-[#3D3D3D] dark:bg-[#242424] p-1 px-2 text-right"
+        on:change={async (event) => {
+          jdom = await db.jdoms.get(jdomId)
+          if (jdom) loadJdomContent()
         }}
-      />
+      >
+        {#if $articles}
+          {#each $articles as article (article.id)}
+            <option value={article.id}>{article.url}</option>
+          {/each}
+        {/if}
+      </select>
+
+      {#if $articles && $articles.length > 0}
+        <button
+          type="button"
+          class="p-1 mr-2 after:content-['💣'] hover:after:content-['💥'] duration-100 ease-in-out transform hover:scale-150"
+          title="Clear all articles"
+          on:click={clearDatabases}
+        />
+      {/if}
+    </div>
+  </div>
+  <div class="w-80">
+    <nav class="inline-block">
+      <ul class="list-none dark:bg-[#292929] border-l dark:border-[#3D3D3D]">
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <li
+          class="bg-[] dark:bg-[#292929] p-1 px-2 dark:hover:bg-black dark:hover:text-white inline-block hover:cursor-pointer {activeSidebar ===
+          'marks'
+            ? 'bg-white text-black border-x border-black dark:bg-black dark:text-white'
+            : ''}"
+          on:click={() => (activeSidebar = 'marks')}
+        >
+          Marks
+        </li>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <li
+          class="bg-[] dark:bg-[#292929] p-1 px-2 dark:hover:bg-black dark:hover:text-white inline-block hover:cursor-pointer {activeSidebar ===
+          'readingOrder'
+            ? 'bg-white text-black border-x border-black dark:bg-black dark:text-white'
+            : ''}"
+          on:click={() => (activeSidebar = 'readingOrder')}
+        >
+          Reading Order
+        </li>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <li
+          class="bg-[] dark:bg-[#292929] p-1 px-2 dark:hover:bg-black dark:hover:text-white inline-block hover:cursor-pointer {activeSidebar ===
+          'highlights'
+            ? 'bg-white text-black border-x border-black dark:bg-black dark:text-white'
+            : ''}"
+          on:click={() => (activeSidebar = 'highlights')}
+        >
+          Highlights
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<div class="flex flex-wrap">
+  <div class="grow dark:bg-[#242424] overflow-auto" style="max-width: calc(100% - 320px)">
+    {#if activeMainPanel === 'rendered'}
+      <article class="prose dark:prose-dark dark:text-white">
+        {@html renderedDoc}
+      </article>
+    {/if}
+    {#if activeMainPanel === 'text'}
+      Text
+    {/if}
+    {#if activeMainPanel === 'original'}
+      <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
     {/if}
   </div>
-</div>
-<div class="border-b border-black dark:border-white p-5 pl-10">
-  <h1 class="text-xl font-medium relative {showRawTextContent ? 'mb-5' : 'mb-0'}" transition:slide>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <span
-      on:click={() => (showRawTextContent = !showRawTextContent)}
-      class="absolute -inset-x-5 transition {showRawTextContent
-        ? 'rotate-90'
-        : 'rotate-0'} origin-center w-3 h-5 text-sm mt-1">&#9658;</span
-    >
-    Raw Text Content
-  </h1>
-  {#if showRawTextContent}
-    <div
-      class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 overflow-scroll max-h-52"
-      transition:slide
-    >
-      <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
-    </div>
-  {/if}
-</div>
-<div class="{showJDOM ? '' : 'border-b border-black dark:border-white'} p-5 pl-10">
-  <h1 class="text-xl font-medium relative mb-5">
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <span
-      on:click={() => (showJDOM = !showJDOM)}
-      class="absolute -inset-x-5 transition {showJDOM
-        ? 'rotate-90'
-        : 'rotate-0'} origin-center w-3 h-5 text-sm mt-1">&#9658;</span
-    >
-    JDOM
-  </h1>
-  {#if showJDOM}
-    <div transition:slide>
-      <h1 class="text-xl font-medium relative mb-5">Raw Content</h1>
-      <div
-        class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
-      >
-        <pre>{readableContent}</pre>
-      </div>
-    </div>
-  {/if}
-</div>
-{#if showJDOM}
-  <div class="flex" transition:slide>
-    <div class="border-b border-black dark:border-white p-5 pl-10 w-1/2">
-      <h1 class="text-xl font-medium relative mb-5">Marks</h1>
-      <div
-        class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
-      >
-        <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
-      </div>
-    </div>
-    <div class="border-b border-black dark:border-white p-5 pl-10 w-1/2">
-      <h1 class="text-xl font-medium relative mb-5">Reading Order</h1>
-      <div
-        class="border border-black dark:border-white p-5 bg-[#F4F7E7] dark:bg-slate-900 overflow-scroll max-h-52"
-      >
-        <pre>{#if jdom}{jdom.readingOrder
-              .map((e) => JSON.stringify(e, null, 2))
-              .join('\n')}{/if}</pre>
-      </div>
-    </div>
+  <div class="w-80 dark:bg-[#242424] border-l dark:border-[#3D3D3D]">
+    {#if activeSidebar === 'marks'}
+      <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
+    {/if}
+    {#if activeSidebar === 'readingOrder'}
+      <pre>{#if jdom}{jdom.readingOrder
+            .map((e) => JSON.stringify(e, null, 2))
+            .join('\n')}{/if}</pre>
+    {/if}
+    {#if activeSidebar === 'highlights'}
+      <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+    {/if}
   </div>
-{/if}
-<div class="border-b border-black dark:border-white p-5 pl-10">
-  <h1 class="text-xl font-medium relative {showRenderedDoc ? 'mb-5' : 'mb-0'}" transition:slide>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <span
-      on:click={() => (showRenderedDoc = !showRenderedDoc)}
-      class="absolute -inset-x-5 transition {showRenderedDoc
-        ? 'rotate-90'
-        : 'rotate-0'} origin-center w-3 h-5 text-sm mt-1">&#9658;</span
-    >
-    Rendered Doc
-  </h1>
-  {#if showRenderedDoc}
-    <div class="flex" transition:slide>
-      <div class="border border-black p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 w-3/4">
-        <article class="prose dark:prose-dark">
-          {@html renderedDoc}
-        </article>
-      </div>
-      <div
-        class="border border-black border-l-0 p-5 bg-[#F4F7E7] dark:border-white dark:bg-slate-900 w-1/4"
-      >
-        <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}
-        </pre>
-      </div>
-    </div>
-  {/if}
 </div>

@@ -6,6 +6,6 @@
   <a class="hover:underline" href="/">Home</a>
 </nav> -->
 
-<div>
+<div class="relative" style="height: 100vh;">
   <slot />
 </div>

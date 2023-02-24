@@ -73,16 +73,6 @@ const markTypesToTag: { [index: string]: string } = {
   italic: 'i'
 }
 
-const blockMarks = [
-  'heading1',
-  'heading2',
-  'heading3',
-  'heading4',
-  'heading5',
-  'heading6',
-  'paragraph'
-]
-
 const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer']
 
 const walk = (nodes: Node[], marks: object[], readingOrder: object[] = [], readable = true) => {
