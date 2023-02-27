@@ -113,8 +113,10 @@
   let activeSidebar = 'highlights'
 </script>
 
-<div class="border-b border-black dark:bg-[#333333] dark:border-[#3D3D3D] flex flex-grow">
-  <div class="grow">
+<div
+  class="border-b border-black dark:bg-[#333333] dark:border-[#3D3D3D] grid h-full grid-cols-[1fr_320px] grid-rows-[29px,_1fr]"
+>
+  <div class="col-auto border-b border-black dark:border-[#3D3D3D]">
     <nav class="inline-block mr-3">
       <ul class="list-none dark:bg-[#292929] ">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -194,7 +196,7 @@
       {/if}
     </div>
   </div>
-  <div class="w-80">
+  <div class="col-auto border-b border-black dark:border-[#3D3D3D]">
     <nav class="inline-block">
       <ul class="list-none dark:bg-[#292929] border-l dark:border-[#3D3D3D]">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -230,13 +232,11 @@
       </ul>
     </nav>
   </div>
-</div>
 
-{#if jdom}
-  <div class="flex flex-wrap">
-    <div class="grow dark:bg-[#242424] overflow-auto" style="max-width: calc(100% - 320px)">
+  <div class="col-auto dark:bg-[#242424] overflow-y-auto">
+    {#if jdom}
       {#if activeMainPanel === 'rendered'}
-        <article class="prose dark:prose-dark dark:text-white">
+        <article class="prose dark:prose-dark dark:text-white p-5">
           {@html renderedDoc}
         </article>
       {/if}
@@ -246,21 +246,21 @@
       {#if activeMainPanel === 'original'}
         <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
       {/if}
-    </div>
-    <div class="w-80 dark:bg-[#242424] border-l dark:border-[#3D3D3D]">
-      {#if activeSidebar === 'marks'}
-        <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
-      {/if}
-      {#if activeSidebar === 'readingOrder'}
-        <pre>{#if jdom}{jdom.readingOrder
-              .map((e) => JSON.stringify(e, null, 2))
-              .join('\n')}{/if}</pre>
-      {/if}
-      {#if activeSidebar === 'highlights'}
-        <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
-      {/if}
-    </div>
+    {:else}
+      <p class="text-center mt-10">Enter a URL above to Import a page.</p>
+    {/if}
   </div>
-{:else}
-  <p class="text-center mt-10">Enter a URL above to Import a page.</p>
-{/if}
+  <div class="col-auto overflow-y-auto dark:bg-[#242424] border-l dark:border-[#3D3D3D]">
+    {#if activeSidebar === 'marks'}
+      <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
+    {/if}
+    {#if activeSidebar === 'readingOrder'}
+      <pre>{#if jdom}{jdom.readingOrder
+            .map((e) => JSON.stringify(e, null, 2))
+            .join('\n')}{/if}</pre>
+    {/if}
+    {#if activeSidebar === 'highlights'}
+      <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+    {/if}
+  </div>
+</div>
