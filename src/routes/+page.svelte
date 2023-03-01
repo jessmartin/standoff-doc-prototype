@@ -236,7 +236,7 @@
   <div class="col-auto dark:bg-[#242424] overflow-y-auto">
     {#if jdom}
       {#if activeMainPanel === 'rendered'}
-        <article class="prose dark:prose-dark dark:text-white p-5">
+        <article class="prose dark:prose-invert p-5">
           {@html renderedDoc}
         </article>
       {/if}
