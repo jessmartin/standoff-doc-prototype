@@ -190,24 +190,24 @@
     </form>
 
     <div class="inline-block">
-      <select
-        name="articles"
-        id="articles"
-        bind:value={jdomId}
-        class="border-x border-black dark:border-[#3D3D3D] dark:bg-[#242424] p-1 px-2 text-right"
-        on:change={async (event) => {
-          jdom = await db.jdoms.get(jdomId)
-          if (jdom) loadJdomContent()
-        }}
-      >
-        {#if $articles}
-          {#each $articles as article (article.id)}
-            <option value={article.id}>{article.url}</option>
-          {/each}
-        {/if}
-      </select>
-
       {#if $articles && $articles.length > 0}
+        <select
+          name="articles"
+          id="articles"
+          bind:value={jdomId}
+          class="border-x border-black dark:border-[#3D3D3D] dark:bg-[#242424] p-1 px-2 text-right max-w-xs"
+          on:change={async (event) => {
+            jdom = await db.jdoms.get(jdomId)
+            if (jdom) loadJdomContent()
+          }}
+        >
+          {#if $articles}
+            {#each $articles as article (article.id)}
+              <option value={article.id}>{article.url}</option>
+            {/each}
+          {/if}
+        </select>
+
         <button
           type="button"
           class="p-1 mr-2 after:content-['💣'] hover:after:content-['💥'] duration-100 ease-in-out transform hover:scale-150"
