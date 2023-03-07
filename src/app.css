@@ -10,7 +10,9 @@
 
 .user-highlight {
   @apply bg-slate-300;
+  @apply dark:bg-[#3D3D3D];
   @apply py-1;
   @apply border-b;
   @apply border-slate-400;
+  @apply dark:border-[#4D4D4D];
 }

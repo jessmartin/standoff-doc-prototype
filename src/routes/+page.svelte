@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ActionData } from './$types'
-  import type { JDOM, UserMark } from '$lib/util'
+  import type { JDOM, UserMark, ReadingOrder } from '$lib/util'
 
   import { onMount } from 'svelte'
   import { htmlToJdom, jdomToText, jdomToHtml } from '$lib/util'
@@ -99,6 +99,13 @@
     })
   })
 
+  const clearHighlights = async () => {
+    if (jdom) {
+      await db.highlights.where('jdomId').equals(jdomId).delete()
+      loadJdomContent()
+    }
+  }
+
   const clearDatabases = async () => {
     await db.jdoms.clear()
     jdomId = 0
@@ -109,8 +116,22 @@
     userMarks = []
   }
 
-  let activeMainPanel = 'original'
-  let activeSidebar = 'highlights'
+  const switchReadingOrder = (index: number) => {
+    if (jdom) {
+      jdom.readingOrder = jdom.readingOrder.reduce((acc, curr, i) => {
+        if (i === index) {
+          acc.unshift(curr)
+        } else {
+          acc.push(curr)
+        }
+        return acc
+      }, [] as ReadingOrder[])
+      loadJdomContent()
+    }
+  }
+
+  let activeMainPanel = 'rendered'
+  let activeSidebar = 'readingOrder'
 </script>
 
 <div
@@ -252,15 +273,48 @@
   </div>
   <div class="col-auto overflow-y-auto dark:bg-[#242424] border-l dark:border-[#3D3D3D]">
     {#if activeSidebar === 'marks'}
-      <pre>{#if jdom}{jdom.marks.map((e) => JSON.stringify(e, null, 2)).join('\n')}{/if}</pre>
+      {#if jdom}
+        {#each jdom.marks as mark}
+          <div
+            class="border-b border-black dark:border-[#3D3D3D] text-xs p-1 hover:bg-white dark:hover:bg-[#2E2E2E]"
+          >
+            <pre>{JSON.stringify(mark, null, 2)}</pre>
+          </div>
+        {/each}
+      {/if}
     {/if}
     {#if activeSidebar === 'readingOrder'}
-      <pre>{#if jdom}{jdom.readingOrder
-            .map((e) => JSON.stringify(e, null, 2))
-            .join('\n')}{/if}</pre>
+      {#if jdom}
+        {#each jdom.readingOrder as readingOrder (readingOrder.index)}
+          <div
+            class="border-b border-black dark:border-[#3D3D3D] text-xs p-1 hover:bg-white dark:hover:bg-[#2E2E2E]"
+          >
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <pre on:click={() => switchReadingOrder(readingOrder.index)}>{JSON.stringify(
+                readingOrder,
+                null,
+                2
+              )}</pre>
+          </div>
+        {/each}
+      {/if}
     {/if}
     {#if activeSidebar === 'highlights'}
-      <pre>{userMarks.map((e) => JSON.stringify(e, null, 2)).join('\n')}</pre>
+      {#if jdom}
+        <button
+          type="button"
+          class="p-1 border-b dark:border-[#3D3D3D] after:content-['💣'] hover:after:content-['💥'] hover:bg-white dark:hover:bg-[#2E2E2E] w-full"
+          title="Clear all highlights"
+          on:click={clearHighlights}>Clear all highlights</button
+        >
+        {#each userMarks as highlight}
+          <div
+            class="border-b border-black dark:border-[#3D3D3D] text-xs p-1 hover:bg-white dark:hover:bg-[#2E2E2E]"
+          >
+            <pre>{JSON.stringify(highlight, null, 2)}</pre>
+          </div>
+        {/each}
+      {/if}
     {/if}
   </div>
 </div>
