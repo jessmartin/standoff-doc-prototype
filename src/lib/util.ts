@@ -59,7 +59,9 @@ const nodesToMark: { [index: string]: string } = {
   b: 'bold',
   strong: 'bold',
   i: 'italic',
-  em: 'italic'
+  em: 'italic',
+  blockquote: 'blockquote',
+  small: 'small'
 }
 
 const markTypesToTag: { [index: string]: string } = {
@@ -70,9 +72,12 @@ const markTypesToTag: { [index: string]: string } = {
   heading6: 'h6',
   paragraph: 'p',
   bold: 'b',
-  italic: 'i'
+  italic: 'i',
+  blockquote: 'blockquote',
+  small: 'small'
 }
 
+// const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer', 'blockquote', 'small']
 const nodesNotToRead: string[] = ['nav', 'head', 'style', 'script', 'footer']
 
 const walk = (nodes: Node[], marks: object[], readingOrder: object[] = [], readable = true) => {

@@ -108,12 +108,27 @@
 
   const clearDatabases = async () => {
     await db.jdoms.clear()
+    await db.highlights.clear()
     jdomId = 0
     jdom = undefined
     url = ''
     readableContent = ''
     renderedDoc = ''
     userMarks = []
+  }
+
+  const recalculateReadingOrder = async () => {
+    if (!jdom) return
+
+    console.log('current jdom id:', jdom.id)
+
+    const currJdomId = jdom.id
+    jdom = htmlToJdom(url, jdom.rawContent)
+    jdom.id = currJdomId
+    console.log('new jdom:', jdom)
+    await db.jdoms.put(jdom, currJdomId)
+
+    loadJdomContent()
   }
 
   const switchReadingOrder = (index: number) => {
@@ -158,7 +173,7 @@
             : ''}"
           on:click={() => (activeMainPanel = 'text')}
         >
-          Text
+          Plain Text
         </li>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <li
@@ -262,10 +277,12 @@
         </article>
       {/if}
       {#if activeMainPanel === 'text'}
-        Text
+        <p class="max-w-sm p-5">{readableContent}</p>
       {/if}
       {#if activeMainPanel === 'original'}
-        <pre>{#if jdom}{jdom.rawContent}{/if}</pre>
+        <pre>
+          {#if jdom}{jdom.rawContent}{/if}
+        </pre>
       {/if}
     {:else}
       <p class="text-center mt-10">Enter a URL above to Import a page.</p>
@@ -285,6 +302,12 @@
     {/if}
     {#if activeSidebar === 'readingOrder'}
       {#if jdom}
+        <button
+          type="button"
+          class="p-1 border-b dark:border-[#3D3D3D] hover:bg-white dark:hover:bg-[#2E2E2E] w-full"
+          title="Re-parse document"
+          on:click={recalculateReadingOrder}>Re-parse document</button
+        >
         {#each jdom.readingOrder as readingOrder (readingOrder.index)}
           <div
             class="border-b border-black dark:border-[#3D3D3D] text-xs p-1 hover:bg-white dark:hover:bg-[#2E2E2E]"
