@@ -138,6 +138,7 @@ export const jdomToHtml = (jdom: JDOM, userMarks: UserMark[] = []) => {
     for (let i = 0; i < content.length; i++) {
       const char = content[i]
       const charIndex = start + i
+      // console.log('character', char, 'at character index:', charIndex)
 
       const activeUserMarks = userMarks.filter((mark) => {
         if (mark.start <= charIndex && mark.end >= charIndex) {

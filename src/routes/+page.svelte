@@ -61,43 +61,59 @@
       if (selection?.rangeCount) {
         const range = selection.getRangeAt(0)
         const startElement = range.startContainer.parentElement
-        let startElementStart: number = 0
+        let startElementStart: string | null
         let startIndex: number = 0
         if (startElement?.hasAttribute('data-mark-start')) {
-          startElementStart = startElement.getAttribute('data-mark-start') as unknown as number
-          startIndex = parseInt(startElementStart) + parseInt(selection.anchorOffset)
+          startElementStart = startElement.getAttribute('data-mark-start')
+          if (!startElementStart) return
+          if (!selection.anchorOffset) return
+          startIndex = parseInt(startElementStart) + selection.anchorOffset
         }
 
         const endElement = range.endContainer.parentElement
-        let endElementStart: number = 0
+        let endElementStart: string | null
         let endIndex: number = 0
         if (endElement?.hasAttribute('data-mark-start')) {
-          endElementStart = endElement.getAttribute('data-mark-start') as unknown as number
-          endIndex = parseInt(endElementStart) + parseInt(selection.focusOffset) - 1
+          endElementStart = endElement.getAttribute('data-mark-start')
+          if (!endElementStart) return
+          endIndex = parseInt(endElementStart) + selection.focusOffset - 1
         }
 
         if (startIndex >= endIndex + 1) return
 
         if (startIndex > 0 && endIndex > 0) {
           // Iterate over the reading order blocks between the start and the end
-          const userMark: UserMark = {
-            jdomId: jdomId,
-            start: startIndex,
-            end: endIndex,
-            markType: 'highlight'
-          }
-          if (
-            !userMarks.some((mark) => mark.start === userMark.start && mark.end === userMark.end)
-          ) {
-            userMarks.push(userMark)
-            db.highlights.add(userMark)
-            userMarks = userMarks
-          }
+          jdom?.readingOrder.forEach((block) => {
+            if (block.end <= startIndex || block.start >= endIndex) {
+            } else if (block.start <= startIndex && block.end >= endIndex) {
+              addHighlight(startIndex, endIndex)
+            } else if (block.start <= startIndex && block.end <= endIndex) {
+              addHighlight(startIndex, block.end)
+            } else if (block.start >= startIndex && block.end <= endIndex) {
+              addHighlight(block.start, block.end)
+            } else if (block.start >= startIndex && block.end >= endIndex) {
+              addHighlight(block.start, endIndex)
+            }
+          })
         }
       }
       if (jdom) renderedDoc = jdomToHtml(jdom, userMarks)
     })
   })
+
+  const addHighlight = async (startIndex: number, endIndex: number) => {
+    const userMark: UserMark = {
+      jdomId: jdomId,
+      start: startIndex,
+      end: endIndex,
+      markType: 'highlight'
+    }
+    if (!userMarks.some((mark) => mark.start === userMark.start && mark.end === userMark.end)) {
+      userMarks.push(userMark)
+      await db.highlights.add(userMark)
+      userMarks = userMarks
+    }
+  }
 
   const clearHighlights = async () => {
     if (jdom) {
