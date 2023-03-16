@@ -49,8 +49,6 @@
 
     // This is very simple logic, and does not work well with anything beyond a
     // single block-level element containing text.
-    // It also doesn't support dividing a selection into multiple userMarks based
-    // on the readingOrder blocks that it spans.
     document.addEventListener('mouseup', (event) => {
       const selection = window.getSelection()
 
